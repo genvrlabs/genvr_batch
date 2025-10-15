@@ -8,7 +8,7 @@ Process images, videos, audio, and more with an intuitive interface designed for
 [![PySide6](https://img.shields.io/badge/UI-PySide6-green.svg)](https://pypi.org/project/PySide6/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![GenVR Batch Processor Screenshot](screenshot.png)
+![GenVR Batch Processor Screenshot](screenshot.PNG)
 
 ---
 
