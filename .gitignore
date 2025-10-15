@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPREQUIRE
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+config.json
+*.log
+
+# Generated schemas (can be re-fetched)
+schema_*.json
+schema_google_*.json
+schema_flux_*.json
+
+# Test files
+test_*.py
+test_*.json
+
+# Example/sample files
+example_*.csv
+sample_*.json
+
+# User data
+results/
+outputs/
+downloads/
+batch_results/
+
+# Temporary files
+*.tmp
+*.temp
+.cursor/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini

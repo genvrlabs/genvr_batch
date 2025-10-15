@@ -1,0 +1,23 @@
+[
+  {
+    "prompt": "A serene mountain landscape at sunset with snow-capped peaks",
+    "aspect_ratio": "16:9"
+  },
+  {
+    "prompt": "Futuristic cyberpunk city with neon lights and flying cars",
+    "aspect_ratio": "16:9"
+  },
+  {
+    "prompt": "Abstract geometric art with vibrant colors and patterns",
+    "aspect_ratio": "1:1"
+  },
+  {
+    "prompt": "Peaceful zen garden with cherry blossoms and koi pond",
+    "aspect_ratio": "4:3"
+  },
+  {
+    "prompt": "Underwater scene with colorful coral reef and tropical fish",
+    "aspect_ratio": "16:9"
+  }
+]
+

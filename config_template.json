@@ -1,0 +1,14 @@
+{
+  "uid": "YOUR_USER_ID_HERE",
+  "api_key": "YOUR_API_KEY_HERE",
+  "api_endpoint": "https://api.genvrresearch.com",
+  "default_concurrent_requests": 3,
+  "export_directory": "./exports",
+  "notes": {
+    "uid": "Your GenVR user ID",
+    "api_key": "Your GenVR Bearer token from https://api.genvrresearch.com",
+    "concurrent_requests": "Number of simultaneous batch requests (1-10)",
+    "export_directory": "Default directory for exporting results"
+  }
+}
+

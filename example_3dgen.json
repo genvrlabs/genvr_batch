@@ -1,0 +1,11 @@
+[
+  {
+    "image_url": "https://example.com/product1.jpg",
+    "prompt": "high quality 3D model with realistic textures"
+  },
+  {
+    "image_url": "https://example.com/product2.jpg",
+    "prompt": "detailed 3D asset for game engine"
+  }
+]
+

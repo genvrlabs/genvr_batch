@@ -1,0 +1,15 @@
+[
+  {
+    "image_url": "https://example.com/photo1.jpg",
+    "prompt": "change background to sunset beach"
+  },
+  {
+    "image_url": "https://example.com/photo2.jpg",
+    "prompt": "professional office background"
+  },
+  {
+    "image_url": "https://example.com/photo3.jpg",
+    "prompt": "mountain landscape background"
+  }
+]
+
