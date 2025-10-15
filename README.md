@@ -50,7 +50,7 @@ Process images, videos, audio, and more with an intuitive interface designed for
 
 ## 🖥️ Screenshot
 
-![GenVR Batch Processor Interface](screenshot.png)
+![GenVR Batch Processor Interface](screenshot2.PNG)
 *Modern dark theme with real-time batch processing*
 
 ---
@@ -107,7 +107,7 @@ chmod +x run_qt.sh
 └─────────────────────────────┘
 ```
 
-Get credentials from [GenVR Research](https://genvrresearch.com)
+Get credentials from [GenVR Research's API platform](https://api.genvrresearch.com/obtain-api)
 
 ### 2. Select Model
 
