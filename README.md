@@ -15,8 +15,8 @@ Process images, videos, audio, and more with an intuitive interface designed for
 ## ✨ Key Features
 
 ### 🎯 **300+ AI Models**
-- **Image Generation:** DALL-E, Stable Diffusion, Flux, Midjourney, and more
-- **Video Generation:** Runway, Pika, Kling, and more
+- **Image Generation:** DALL-E, Stable Diffusion, Flux, Nano Banana, and more
+- **Video Generation:** Runway, Veo3, Pika, Kling, and more
 - **Image Utilities:** Upscaling, enhancement, editing, face swap
 - **Audio & 3D:** Voice synthesis, music generation, 3D model creation
 
