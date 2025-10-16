@@ -83,7 +83,7 @@ You can switch between different categories (imagegen, videogen, audiogen) and p
 
 **Can't see models?**
 - Check your internet connection
-- The app loads 300+ models from the API on startup
+- The app loads all available models from the API on startup
 
 **API errors?**
 - Verify both your UID and API key are correct
@@ -98,20 +98,22 @@ You can switch between different categories (imagegen, videogen, audiogen) and p
 
 ---
 
-## 🎨 Available Categories (308 Models)
+## 🎨 Available Categories
 
-- **imagegen** (42) - Image generation (Flux 1.1 Pro Ultra, DALL-E 3, Imagen 4, Stable Diffusion 3.5, etc.)
-- **videogen** (81) - Video generation (Runway Gen4, Luma Ray2, Kling 2.5, Google Veo3, Sora2, etc.)
-- **imgedit** (34) - Image editing (background change, face enhance, style transfer, filters, etc.)
-- **vidutils** (42) - Video utilities (lipsync, upscale, background removal, audio addition, etc.)
-- **videogen_templates** (39) - Pre-made video templates and effects
-- **imgutils** (27) - Image utilities (upscale, inpainting, variations, reframing, etc.)
-- **audiogen** (13) - Audio generation (ElevenLabs, Google Lyria 2, MiniMax, etc.)
-- **3dgen** (8) - 3D model generation (Trellis, Hunyuan 3D 2.1, Meshy, Tripo, etc.)
-- **imgutils_transfer** (8) - Face/garment/material/style transfer
-- **imgutils_control** (6) - ControlNet preprocessors (canny, pose, depth, scribble, etc.)
-- **basicutils** (5) - Utility tools (array indexer, image compositor, video merge, etc.)
-- **textgen** (3) - Text generation (GPT-4o Mini, GPT-5, Workflow Designer)
+- **imagegen** - Image generation (Flux 1.1 Pro Ultra, DALL-E 3, Imagen 4, Stable Diffusion 3.5, etc.)
+- **videogen** - Video generation (Runway Gen4, Luma Ray2, Kling 2.5, Google Veo3, Sora2, etc.)
+- **imgedit** - Image editing (background change, face enhance, style transfer, filters, etc.)
+- **vidutils** - Video utilities (lipsync, upscale, background removal, audio addition, etc.)
+- **videogen_templates** - Pre-made video templates and effects
+- **imgutils** - Image utilities (upscale, inpainting, variations, reframing, etc.)
+- **audiogen** - Audio generation (ElevenLabs, Google Lyria 2, MiniMax, etc.)
+- **3dgen** - 3D model generation (Trellis, Hunyuan 3D 2.1, Meshy, Tripo, etc.)
+- **imgutils_transfer** - Face/garment/material/style transfer
+- **imgutils_control** - ControlNet preprocessors (canny, pose, depth, scribble, etc.)
+- **basicutils** - Utility tools (array indexer, image compositor, video merge, etc.)
+- **textgen** - Text generation (GPT-4o Mini, GPT-5, Workflow Designer)
+
+*Model counts are automatically loaded from the API and may vary as new models are added.*
 
 ---
 

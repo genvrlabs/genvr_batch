@@ -19,7 +19,7 @@ The application has been updated to:
 
 ### After:
 - Cross-references `/api/get-models` with `/api/models`
-- Shows only 308 **actually available** models
+- Shows only **actually available** models
 - Proper 3-step API workflow with status polling
 - Supports 12 categories (vs 4 before)
 
@@ -141,7 +141,7 @@ output = result_response.json()['data']['output']
 3. **Filter and merge**:
    - Keep only models present in get-models
    - Add missing models from get-models
-   - Result: 308 available models
+   - Result: All available models
 
 ---
 
@@ -172,7 +172,7 @@ output = result_response.json()['data']['output']
 - **Original** (/api/models): 313 models
 - **Filtered out**: 22 unavailable models
 - **Added** (missing from /api/models): 17 models
-- **Final**: **308 available models**
+- **Final**: **All available models**
 
 ### Category Distribution:
 | Category | Count | Description |

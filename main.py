@@ -203,7 +203,7 @@ class GenVRBatchProcessor:
         title_container = ttk.Frame(title_frame)
         title_container.pack(side=tk.LEFT)
         ttk.Label(title_container, text="GenVR Batch Processor", style="Title.TLabel").pack(anchor=tk.W)
-        ttk.Label(title_container, text="Process 308 AI models in batch", 
+        ttk.Label(title_container, text="Process 300+ AI models in batch", 
                  style="Dim.TLabel").pack(anchor=tk.W, pady=(2, 0))
         
         # API Configuration - Modern card style
