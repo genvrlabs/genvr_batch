@@ -53,10 +53,10 @@ class APIWorker(QThread):
             }
             
             response = requests.post(
-                f"{self.api_base}/api/v1/generate",
+                f"{self.api_base}/v2/generate",
                 json=generate_payload,
                 headers=headers,
-                timeout=30
+                timeout=120  # Increased timeout for slow models
             )
             response.raise_for_status()
             data = response.json()
@@ -74,7 +74,7 @@ class APIWorker(QThread):
                 self.status_update.emit(f"⏳ Processing... ({poll_count}s)")
                 
                 status_response = requests.post(
-                    f"{self.api_base}/api/v1/status",
+                    f"{self.api_base}/v2/status",
                     json={
                         "id": task_id,
                         "uid": self.uid,
@@ -97,7 +97,7 @@ class APIWorker(QThread):
                     self.status_update.emit("✅ Retrieving results...")
                     
                     result_response = requests.post(
-                        f"{self.api_base}/api/v1/response",
+                        f"{self.api_base}/v2/response",
                         json={
                             "id": task_id,
                             "uid": self.uid,
@@ -105,7 +105,7 @@ class APIWorker(QThread):
                             "subcategory": self.subcategory
                         },
                         headers=headers,
-                        timeout=30
+                        timeout=60  # Increased timeout for large responses
                     )
                     result_response.raise_for_status()
                     result_data = result_response.json()
@@ -226,10 +226,10 @@ class BatchWorker(QThread):
         }
         
         generate_response = requests.post(
-            f"{self.api_base}/api/v1/generate",
+            f"{self.api_base}/v2/generate",
             json=generate_payload,
             headers=headers,
-            timeout=30
+            timeout=120  # Increased timeout for slow models
         )
         generate_response.raise_for_status()
         generate_data = generate_response.json()
@@ -253,7 +253,7 @@ class BatchWorker(QThread):
             }
             
             status_response = requests.post(
-                f"{self.api_base}/api/v1/status",
+                f"{self.api_base}/v2/status",
                 json=status_payload,
                 headers=headers,
                 timeout=10
@@ -276,10 +276,10 @@ class BatchWorker(QThread):
                 }
                 
                 result_response = requests.post(
-                    f"{self.api_base}/api/v1/response",
+                    f"{self.api_base}/v2/response",
                     json=result_payload,
                     headers=headers,
-                    timeout=10
+                    timeout=60  # Increased timeout for large responses
                 )
                 result_response.raise_for_status()
                 result_data = result_response.json()

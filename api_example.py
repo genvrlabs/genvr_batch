@@ -24,7 +24,7 @@ def generate_with_model():
     # Step 1: Generate - Submit the task
     print("Step 1: Submitting generation task...")
     generate_response = requests.post(
-        f'{BASE_URL}/api/v1/generate',
+        f'{BASE_URL}/v2/generate',
         json={
             'uid': UID,
             'category': 'imgedit',
@@ -36,7 +36,8 @@ def generate_with_model():
             # 'output_format': "jpeg",
             # 'seed': 1,
         },
-        headers=headers
+        headers=headers,
+        timeout=120  # Increased timeout for slow models
     )
     
     generate_data = generate_response.json()
@@ -51,7 +52,7 @@ def generate_with_model():
     poll_count = 0
     while True:
         status_response = requests.post(
-            f'{BASE_URL}/api/v1/status',
+            f'{BASE_URL}/v2/status',
             json={
                 'id': task_id,
                 'uid': UID,
@@ -72,14 +73,15 @@ def generate_with_model():
             # Step 3: Get final response
             print("Step 3: Retrieving final result...")
             result_response = requests.post(
-                f'{BASE_URL}/api/v1/response',
+                f'{BASE_URL}/v2/response',
                 json={
                     'id': task_id,
                     'uid': UID,
                     'category': 'imgedit',
                     'subcategory': 'background_change'
                 },
-                headers=headers
+                headers=headers,
+                timeout=60  # Increased timeout for large responses
             )
             
             result_data = result_response.json()

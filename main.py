@@ -803,10 +803,10 @@ class GenVRBatchProcessor:
         self.root.after(0, lambda: self.status_var.set("Submitting task..."))
         
         generate_response = requests.post(
-            f"{self.api_base}/api/v1/generate",
+            f"{self.api_base}/v2/generate",
             json=generate_payload,
             headers=headers,
-            timeout=30
+            timeout=120  # Increased timeout for slow models
         )
         generate_response.raise_for_status()
         generate_data = generate_response.json()
@@ -832,7 +832,7 @@ class GenVRBatchProcessor:
             }
             
             status_response = requests.post(
-                f"{self.api_base}/api/v1/status",
+                f"{self.api_base}/v2/status",
                 json=status_payload,
                 headers=headers,
                 timeout=10
@@ -857,10 +857,10 @@ class GenVRBatchProcessor:
                 }
                 
                 result_response = requests.post(
-                    f"{self.api_base}/api/v1/response",
+                    f"{self.api_base}/v2/response",
                     json=result_payload,
                     headers=headers,
-                    timeout=30
+                    timeout=60  # Increased timeout for large responses
                 )
                 result_response.raise_for_status()
                 result_data = result_response.json()

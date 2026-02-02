@@ -84,7 +84,7 @@ headers = {
 
 ### Step 1: Generate (Submit Task)
 ```python
-response = requests.post(f'{BASE_URL}/api/v1/generate', json={
+response = requests.post(f'{BASE_URL}/v2/generate', json={
     'uid': uid,
     'category': category,
     'subcategory': subcategory,
@@ -97,7 +97,7 @@ task_id = response.json()['data']['id']
 ### Step 2: Poll Status
 ```python
 while True:
-    status_response = requests.post(f'{BASE_URL}/api/v1/status', json={
+    status_response = requests.post(f'{BASE_URL}/v2/status', json={
         'id': task_id,
         'uid': uid,
         'category': category,
@@ -116,7 +116,7 @@ while True:
 
 ### Step 3: Get Result
 ```python
-result_response = requests.post(f'{BASE_URL}/api/v1/response', json={
+result_response = requests.post(f'{BASE_URL}/v2/response', json={
     'id': task_id,
     'uid': uid,
     'category': category,

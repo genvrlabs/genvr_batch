@@ -183,9 +183,9 @@ Swap faces across 100 images
 
 ### API Workflow
 ```
-1. POST /api/v1/generate    → task_id
-2. POST /api/v1/status      → poll until "completed"
-3. POST /api/v1/response    → get results
+1. POST /v2/generate    → task_id
+2. POST /v2/status      → poll until "completed"
+3. POST /v2/response    → get results
 ```
 
 ### File Handling
@@ -207,7 +207,9 @@ PySide6>=6.6.0
 ### API Endpoints
 - Models: `https://api.genvrresearch.com/api/models`
 - Schema: `https://api.genvrresearch.com/api/schema/:category/:subcategory`
-- Generate: `https://api.genvrresearch.com/api/v1/generate`
+- Generate: `https://api.genvrresearch.com/v2/generate`
+- Status: `https://api.genvrresearch.com/v2/status`
+- Response: `https://api.genvrresearch.com/v2/response`
 
 ---
 
