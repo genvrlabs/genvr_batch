@@ -7,7 +7,9 @@ import sys
 import requests
 import json
 import time
+import os
 from datetime import datetime
+from dotenv import load_dotenv
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QListWidget, QTextEdit,
@@ -17,6 +19,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QIcon
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class APIWorker(QThread):
@@ -317,6 +322,7 @@ class GenVRBatchProcessor(QMainWindow):
         self.models = []
         self.categories = {}
         self.current_model = None
+        self.current_category = None  # Store current category for file uploads
         self.current_schema = None
         self.param_widgets = {}
         self.results = []
@@ -417,6 +423,10 @@ class GenVRBatchProcessor(QMainWindow):
         self.uid_input = QLineEdit()
         self.uid_input.setPlaceholderText("Enter your GenVR User ID")
         self.uid_input.setMinimumWidth(300)
+        # Load from .env file if available
+        env_uid = os.getenv("GENVR_UID", "")
+        if env_uid:
+            self.uid_input.setText(env_uid)
         
         api_layout.addWidget(uid_label)
         api_layout.addWidget(self.uid_input)
@@ -428,6 +438,10 @@ class GenVRBatchProcessor(QMainWindow):
         self.api_key_input.setPlaceholderText("Enter your API Key")
         self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.api_key_input.setMinimumWidth(300)
+        # Load from .env file if available
+        env_token = os.getenv("GENVR_TOKEN", "")
+        if env_token:
+            self.api_key_input.setText(env_token)
         
         api_layout.addWidget(key_label)
         api_layout.addWidget(self.api_key_input)
@@ -1046,10 +1060,13 @@ class GenVRBatchProcessor(QMainWindow):
         self.category_combo.addItems(categories)
     
     def on_category_changed(self, category):
-        """Handle category change"""
+        """Handle category selection change"""
+        self.current_category = category
         self.model_list.clear()
         if category in self.categories:
-            for model in self.categories[category]:
+            # Sort models alphabetically by name
+            sorted_models = sorted(self.categories[category], key=lambda m: m.get("name", "Unknown").lower())
+            for model in sorted_models:
                 self.model_list.addItem(model.get("name", "Unknown"))
     
     def on_model_selected(self, index):
@@ -1063,6 +1080,7 @@ class GenVRBatchProcessor(QMainWindow):
         
         model = self.categories[category][index]
         self.current_model = model  # Store the selected model
+        self.current_category = category  # Store current category for file uploads
         self.model_info.setText(model.get("description", "No description available"))
         
         # Load schema
@@ -1558,7 +1576,7 @@ class GenVRBatchProcessor(QMainWindow):
                         if not isinstance(batch_data, list):
                             raise ValueError("Expected JSON array")
                         # Convert file placeholders for each item
-                        batch_data = [self.convert_file_placeholders_to_base64(item) for item in batch_data]
+                        batch_data = [self.convert_file_placeholders_to_azure_url(item) for item in batch_data]
                     else:
                         # Parse as newline-delimited JSON
                         # Use a smarter approach: collect complete JSON objects
@@ -1571,7 +1589,7 @@ class GenVRBatchProcessor(QMainWindow):
                             try:
                                 data = json.loads(match)
                                 # Convert [FILE: ...] placeholders to base64
-                                data = self.convert_file_placeholders_to_base64(data)
+                                data = self.convert_file_placeholders_to_azure_url(data)
                                 batch_data.append(data)
                             except json.JSONDecodeError:
                                 pass
@@ -1585,7 +1603,7 @@ class GenVRBatchProcessor(QMainWindow):
                                     continue
                                 try:
                                     data = json.loads(line)
-                                    data = self.convert_file_placeholders_to_base64(data)
+                                    data = self.convert_file_placeholders_to_azure_url(data)
                                     batch_data.append(data)
                                 except json.JSONDecodeError:
                                     pass
@@ -1803,8 +1821,66 @@ class GenVRBatchProcessor(QMainWindow):
         
         return clean_value(params)
     
+    def convert_file_placeholders_to_azure_url(self, data):
+        """Convert [FILE: path] placeholders to Azure URLs in a dict
+        
+        For large files (videos, large images), uploads to Azure.
+        For small files, falls back to base64 if upload fails.
+        """
+        import os
+        
+        def convert_value(value):
+            if isinstance(value, str) and value.startswith("[FILE: ") and value.endswith("]"):
+                # Extract file path
+                filepath = value[7:-1]  # Remove "[FILE: " and "]"
+                return self.upload_or_base64_file(filepath)
+            elif isinstance(value, list):
+                # Recursively convert list items
+                return [convert_value(item) for item in value]
+            elif isinstance(value, dict):
+                # Recursively convert dict values
+                return {k: convert_value(v) for k, v in value.items()}
+            return value
+        
+        return convert_value(data)
+    
+    def upload_or_base64_file(self, filepath):
+        """Upload file to Azure or convert to base64 based on file size/type
+        
+        Args:
+            filepath: Path to the file
+        
+        Returns:
+            str: Azure URL or base64 data URI
+        """
+        import os
+        
+        try:
+            # Check file size - upload large files to Azure
+            file_size = os.path.getsize(filepath)
+            file_size_mb = file_size / (1024 * 1024)
+            
+            # Upload files larger than 1MB to Azure, or videos/images
+            ext = os.path.splitext(filepath)[1].lower()
+            is_media = ext in ['.mp4', '.webm', '.mov', '.avi', '.png', '.jpg', '.jpeg', '.webp', '.gif']
+            
+            if file_size_mb > 1 or is_media:
+                # Upload to Azure
+                category = getattr(self, 'current_category', 'temp')
+                return self.upload_file_to_azure(filepath, category)
+            else:
+                # Small files: use base64
+                return self.file_to_base64(filepath)
+        except Exception as e:
+            # If upload fails, fall back to base64
+            try:
+                return self.file_to_base64(filepath)
+            except:
+                # Return placeholder if all conversions fail
+                return f"[FILE: {filepath}]"
+    
     def convert_file_placeholders_to_base64(self, data):
-        """Convert [FILE: path] placeholders to base64 in a dict"""
+        """Convert [FILE: path] placeholders to base64 in a dict (legacy method)"""
         import re
         
         def convert_value(value):
@@ -1825,8 +1901,98 @@ class GenVRBatchProcessor(QMainWindow):
         
         return convert_value(data)
     
+    def upload_file_to_azure(self, filepath, category=None):
+        """Upload file to Azure Blob Storage and return the file URL
+        
+        Args:
+            filepath: Path to the file to upload
+            category: Optional category for file organization (defaults to current category)
+        
+        Returns:
+            str: Full Azure blob URL with SAS token (https://account.blob.core.windows.net/container/path?sv=...&sig=...)
+        """
+        import os
+        import uuid
+        import mimetypes
+        import requests
+        
+        # Get credentials from input fields
+        uid = self.uid_input.text().strip()
+        api_key = self.api_key_input.text().strip()
+        
+        if not uid or not api_key:
+            raise Exception("User ID and API Key required for file upload")
+        
+        # Get file info
+        file_name = os.path.basename(filepath)
+        file_ext = os.path.splitext(file_name)[1].lstrip('.')
+        
+        # Determine MIME type
+        mime_type, _ = mimetypes.guess_type(filepath)
+        if not mime_type:
+            ext = filepath.lower().split('.')[-1]
+            mime_map = {
+                'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+                'webp': 'image/webp', 'gif': 'image/gif',
+                'mp4': 'video/mp4', 'webm': 'video/webm', 'mov': 'video/quicktime',
+                'mp3': 'audio/mpeg', 'wav': 'audio/wav', 'ogg': 'audio/ogg'
+            }
+            mime_type = mime_map.get(ext, 'application/octet-stream')
+        
+        # Use current category if not specified
+        if not category:
+            category = getattr(self, 'current_category', 'temp')
+        
+        # Step 1: Get SAS URL for upload
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        sas_response = requests.post(
+            f"{self.api_base}/api/upload/sas-url",
+            json={
+                "userId": uid,
+                "category": category,
+                "fileName": file_name
+            },
+            headers=headers,
+            timeout=30
+        )
+        sas_response.raise_for_status()
+        sas_data = sas_response.json()
+        
+        if not sas_data.get("success"):
+            raise Exception(f"Failed to get upload URL: {sas_data.get('error', 'Unknown error')}")
+        
+        upload_url = sas_data["uploadUrl"]
+        blob_path = sas_data.get("blobPath", "")
+        
+        # Step 2: Upload file to Azure
+        with open(filepath, 'rb') as f:
+            file_data = f.read()
+        
+        upload_headers = {
+            'x-ms-blob-type': 'BlockBlob',
+            'Content-Type': mime_type
+        }
+        
+        upload_response = requests.put(
+            upload_url,
+            data=file_data,
+            headers=upload_headers,
+            timeout=120  # Large files may take time
+        )
+        upload_response.raise_for_status()
+        
+        # Step 3: Return the full blob URL with SAS token
+        # The upload_url already contains the full path with SAS token: 
+        # https://account.blob.core.windows.net/container/path?sv=...&sig=...
+        # This URL can be used to access the uploaded file
+        return upload_url
+    
     def file_to_base64(self, filepath):
-        """Convert file to base64 data URI"""
+        """Convert file to base64 data URI (fallback for small files or when upload fails)"""
         import base64
         import mimetypes
         
@@ -1895,9 +2061,9 @@ class GenVRBatchProcessor(QMainWindow):
                 QMessageBox.warning(self, "No Files", f"No {file_field['type'] or 'media'} files found in the selected folder.")
                 return
             
-            self.status_label.setText(f"⏳ Converting {len(all_files)} files to base64...")
+            self.status_label.setText(f"⏳ Uploading {len(all_files)} files to Azure...")
             
-            # Generate JSON entries with base64
+            # Generate JSON entries with Azure URLs
             field_info = {
                 file_field['name']: {
                     'files': all_files,
@@ -2006,11 +2172,12 @@ class GenVRBatchProcessor(QMainWindow):
             for folder_files in element_files:
                 if i < len(folder_files):
                     try:
-                        base64_data = self.file_to_base64(folder_files[i])
-                        base64_array.append(base64_data)
+                        # Upload to Azure for large files, use base64 for small files
+                        file_url = self.convert_file_placeholders_to_azure_url(f"[FILE: {folder_files[i]}]")
+                        base64_array.append(file_url)
                         display_array.append(f"[FILE: {folder_files[i]}]")
                     except Exception as e:
-                        QMessageBox.warning(self, "Error", f"Failed to convert {folder_files[i]}: {str(e)}")
+                        QMessageBox.warning(self, "Error", f"Failed to upload {folder_files[i]}: {str(e)}")
                         return
             
             example[file_field['name']] = base64_array
@@ -2068,7 +2235,7 @@ class GenVRBatchProcessor(QMainWindow):
         self.batch_json_data = examples
         display_text = "\n".join(display_examples)
         self.batch_input.setPlainText(display_text)
-        self.status_label.setText(f"✅ Generated {len(examples)} entries with base64 arrays")
+        self.status_label.setText(f"✅ Generated {len(examples)} entries with uploaded files")
         
         QMessageBox.information(
             self,
@@ -2077,7 +2244,7 @@ class GenVRBatchProcessor(QMainWindow):
             f"Array field: {file_field['name']}\n" +
             f"Elements per entry: {len(element_files)}\n" +
             f"Files per element: {num_entries}\n\n" +
-            "Files converted to base64 arrays (shown as filenames).\n" +
+            "Files uploaded to Azure (shown as filenames).\n" +
             "Review the JSON and click 'Start Batch Processing' when ready."
         )
     
@@ -2214,27 +2381,29 @@ class GenVRBatchProcessor(QMainWindow):
                     chunk_files = files[start_idx:end_idx]
                     
                     try:
-                        base64_array = []
+                        file_array = []
                         display_array = []
                         for file_path in chunk_files:
-                            base64_data = self.file_to_base64(file_path)
-                            base64_array.append(base64_data)
+                            # Upload to Azure for large files, use base64 for small files
+                            file_url = self.convert_file_placeholders_to_azure_url(f"[FILE: {file_path}]")
+                            file_array.append(file_url)
                             display_array.append(f"[FILE: {file_path}]")
                         
-                        example[field_name] = base64_array
+                        example[field_name] = file_array
                         display_example[field_name] = display_array
                     except Exception as e:
-                        QMessageBox.warning(self, "Error", f"Failed to convert files: {str(e)}")
+                        QMessageBox.warning(self, "Error", f"Failed to upload files: {str(e)}")
                         return
                 else:
                     # Single file field
                     if i < len(files):
                         try:
-                            base64_data = self.file_to_base64(files[i])
-                            example[field_name] = base64_data
+                            # Upload to Azure for large files, use base64 for small files
+                            file_url = self.convert_file_placeholders_to_azure_url(f"[FILE: {files[i]}]")
+                            example[field_name] = file_url
                             display_example[field_name] = f"[FILE: {files[i]}]"
                         except Exception as e:
-                            QMessageBox.warning(self, "Error", f"Failed to convert {files[i]}: {str(e)}")
+                            QMessageBox.warning(self, "Error", f"Failed to upload {files[i]}: {str(e)}")
                             return
             
             # Add required parameters
@@ -2293,7 +2462,7 @@ class GenVRBatchProcessor(QMainWindow):
         # Display examples with filenames for readability
         display_text = "\n".join(display_examples)
         self.batch_input.setPlainText(display_text)
-        self.status_label.setText(f"✅ Generated {len(examples)} entries with base64 data")
+        self.status_label.setText(f"✅ Generated {len(examples)} entries with uploaded files")
         
         field_names = ", ".join(field_info.keys())
         

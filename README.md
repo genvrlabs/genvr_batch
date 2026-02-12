@@ -98,6 +98,16 @@ chmod +x run_qt.sh
 
 ### 1. Configure API Credentials
 
+**Option 1: Use .env file (Recommended)**
+1. Open the `.env` file in the project root
+2. Add your credentials:
+   ```
+   GENVR_UID=your-user-id-here
+   GENVR_TOKEN=your-api-token-here
+   ```
+3. The application will automatically load these values when you start it
+
+**Option 2: Enter in the application**
 ```
 ┌─────────────────────────────┐
 │ 🔑 API Configuration        │
@@ -202,7 +212,16 @@ Swap faces across 100 images
 ```
 requests>=2.31.0
 PySide6>=6.6.0
+python-dotenv>=1.0.0
 ```
+
+### `.env` file
+Create a `.env` file in the project root with your credentials:
+```
+GENVR_UID=your-user-id-here
+GENVR_TOKEN=your-api-token-here
+```
+The application will automatically load these values on startup. If the file doesn't exist or values are empty, you can enter them manually in the application.
 
 ### API Endpoints
 - Models: `https://api.genvrresearch.com/api/models`
