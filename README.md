@@ -216,12 +216,18 @@ python-dotenv>=1.0.0
 ```
 
 ### `.env` file
-Create a `.env` file in the project root with your credentials:
-```
-GENVR_UID=your-user-id-here
-GENVR_TOKEN=your-api-token-here
-```
-The application will automatically load these values on startup. If the file doesn't exist or values are empty, you can enter them manually in the application.
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` and add your credentials:
+   ```
+   GENVR_UID=your-user-id-here
+   GENVR_TOKEN=your-api-token-here
+   ```
+3. The application will automatically load these values on startup. If the file doesn't exist or values are empty, you can enter them manually in the application.
+
+**Note:** The `.env` file is ignored by git (see `.gitignore`) to protect your credentials.
 
 ### API Endpoints
 - Models: `https://api.genvrresearch.com/api/models`
