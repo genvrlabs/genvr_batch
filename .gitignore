@@ -41,6 +41,7 @@ venv.bak/
 # Project specific
 config.json
 *.log
+.env
 
 # Generated schemas (can be re-fetched)
 schema_*.json
