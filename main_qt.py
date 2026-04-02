@@ -322,6 +322,7 @@ class GenVRBatchProcessor(QMainWindow):
         self.models = []
         self.categories = {}
         self.current_model = None
+        self.visible_models = []  # Models in the same order as what's shown in the UI list
         self.current_category = None  # Store current category for file uploads
         self.current_schema = None
         self.param_widgets = {}
@@ -1065,20 +1066,29 @@ class GenVRBatchProcessor(QMainWindow):
         self.model_list.clear()
         if category in self.categories:
             # Sort models alphabetically by name
-            sorted_models = sorted(self.categories[category], key=lambda m: m.get("name", "Unknown").lower())
-            for model in sorted_models:
+            sorted_models = sorted(
+                self.categories[category],
+                key=lambda m: m.get("name", "Unknown").lower()
+            )
+            self.visible_models = sorted_models
+            for model in self.visible_models:
                 self.model_list.addItem(model.get("name", "Unknown"))
+        else:
+            self.visible_models = []
     
     def on_model_selected(self, index):
         """Handle model selection"""
         if index < 0:
             return
         
-        category = self.category_combo.currentText()
+        category = self.current_category or self.category_combo.currentText()
         if category not in self.categories:
             return
-        
-        model = self.categories[category][index]
+
+        if index >= len(self.visible_models):
+            return
+
+        model = self.visible_models[index]
         self.current_model = model  # Store the selected model
         self.current_category = category  # Store current category for file uploads
         self.model_info.setText(model.get("description", "No description available"))
@@ -1854,30 +1864,45 @@ class GenVRBatchProcessor(QMainWindow):
             str: Azure URL or base64 data URI
         """
         import os
+        import mimetypes
         
         try:
-            # Check file size - upload large files to Azure
             file_size = os.path.getsize(filepath)
             file_size_mb = file_size / (1024 * 1024)
             
-            # Upload files larger than 1MB to Azure, or videos/images
+            # Detect media type using MIME sniffing first (more robust than extension lists)
+            mime_type, _ = mimetypes.guess_type(filepath)
             ext = os.path.splitext(filepath)[1].lower()
-            is_media = ext in ['.mp4', '.webm', '.mov', '.avi', '.png', '.jpg', '.jpeg', '.webp', '.gif']
             
-            if file_size_mb > 1 or is_media:
-                # Upload to Azure
-                category = getattr(self, 'current_category', 'temp')
-                return self.upload_file_to_azure(filepath, category)
+            is_media = False
+            if mime_type:
+                is_media = mime_type.startswith(("image/", "video/", "audio/"))
             else:
-                # Small files: use base64
-                return self.file_to_base64(filepath)
+                # Fallback by extension if MIME sniffing fails
+                media_exts = {
+                    ".png", ".jpg", ".jpeg", ".webp", ".gif",
+                    ".mp4", ".webm", ".mov", ".avi",
+                    ".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac"
+                }
+                is_media = ext in media_exts
+            
+            # Always upload images/videos/audio so the API receives URLs, not base64
+            if is_media:
+                category = getattr(self, "current_category", "temp")
+                return self.upload_file_to_azure(filepath, category)
+            
+            # For non-media files: upload only if large, otherwise base64
+            if file_size_mb > 1:
+                category = getattr(self, "current_category", "temp")
+                return self.upload_file_to_azure(filepath, category)
+            
+            return self.file_to_base64(filepath)
         except Exception as e:
-            # If upload fails, fall back to base64
-            try:
-                return self.file_to_base64(filepath)
-            except:
-                # Return placeholder if all conversions fail
-                return f"[FILE: {filepath}]"
+            # For media uploads, don't silently fall back to base64
+            if "is_media" in locals() and is_media:
+                raise Exception(f"Failed to upload media file to Azure: {filepath}. Error: {str(e)}")
+            # For non-media, fallback to base64
+            return self.file_to_base64(filepath)
     
     def convert_file_placeholders_to_base64(self, data):
         """Convert [FILE: path] placeholders to base64 in a dict (legacy method)"""
